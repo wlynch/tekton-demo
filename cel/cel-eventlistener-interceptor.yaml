@@ -1,0 +1,18 @@
+apiVersion: tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: cel-listener-interceptor
+spec:
+  serviceAccountName: tekton-triggers-example-sa
+  triggers:
+    - name: cel-trig
+      interceptors:
+        - cel:
+            filter: "true"
+            overlays:
+            - key: decoded
+              expression: "base64(body.message.data)"
+      bindings:
+      - name: gcb-binding
+      template:
+        name: echo-template

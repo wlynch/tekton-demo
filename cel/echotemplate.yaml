@@ -1,0 +1,33 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: echo-template
+spec:
+  params:
+  - name: msg
+    description: Message to print
+  - name: test
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1alpha1
+    kind: TaskRun
+    metadata:
+      generateName: echo-task-run-
+    spec:
+      inputs: 
+        params:
+          - name: msg
+            value: $(params.msg)
+          - name: test
+            value: '{"a": "b"}'
+      taskSpec:
+        inputs:
+          params:
+          - name: msg
+          - name: test
+        steps:
+          - name: echo
+            image: ubuntu
+            script: |
+              #!/bin/bash
+              echo $(inputs.params.msg)
+              echo $(inputs.params.test)
