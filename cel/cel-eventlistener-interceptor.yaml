@@ -12,7 +12,9 @@ spec:
             overlays:
             - key: decoded
               expression: "base64(body.message.data)"
+        - cel:
+            filter: 'string(body.decoded.tag).matches("gcr.io/my-project")'
       bindings:
-      - name: gcb-binding
+      - name: gcr-binding
       template:
         name: echo-template
