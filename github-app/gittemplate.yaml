@@ -1,0 +1,46 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: git-template
+spec:
+  params:
+  - name: msg
+    description: Message to print
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1alpha1
+    kind: TaskRun
+    metadata:
+      generateName: echo-task-run-
+    spec:
+      serviceAccountName: tekton-triggers-example-sa
+      inputs: 
+        params:
+          - name: msg
+            value: $(params.msg)
+        resources:
+          - name: git-repo
+            resourceSpec:
+              type: git
+              params:
+                - name: revision
+                  value: master
+                - name: url
+                  value: https://github.com/wlynch/private
+      taskSpec:
+        inputs:
+          resources:
+            - name: git-repo
+              type: git
+          params:
+          - name: msg
+        steps:
+          - name: echo
+            image: ubuntu
+            script: |
+              #!/bin/bash
+              echo $(inputs.params.msg)
+          - name: ls
+            image: ubuntu
+            script: |
+              #!/bin/bash
+              ls -R /workspace

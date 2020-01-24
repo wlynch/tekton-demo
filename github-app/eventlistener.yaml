@@ -1,20 +1,18 @@
 apiVersion: tekton.dev/v1alpha1
 kind: EventListener
 metadata:
-  name: cel-listener-interceptor
+  name: githubapp-listener
 spec:
   serviceAccountName: tekton-triggers-example-sa
   triggers:
-    - name: cel-trig
+    - name: gha-trig
       interceptors:
         - cel:
             filter: "true" # Bug. We're going to fix this.
             overlays:
             - key: decoded
               expression: "base64(body.message.data)"
-        - cel:
-            filter: 'string(body.decoded.tag).matches("gcr.io/my-project")'
       bindings:
       - name: gcr-binding
       template:
-        name: echo-template
+        name: git-template
