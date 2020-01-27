@@ -1,0 +1,5 @@
+---
+applications:
+  - name: gcr.io/wlynch-test/buildpack-demo
+    env:
+      GOPACKAGENAME: github.com/wlynch/tekton-demo/buildpack
