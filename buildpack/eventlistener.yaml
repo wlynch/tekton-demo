@@ -8,8 +8,8 @@ spec:
       interceptors:
         - github:
             secretRef:
-              secretName: github-webhook
-              secretKey: secret
+              secretName: secret
+              secretKey: github-webhook
 
       bindings:
         - name: git-push-binding
