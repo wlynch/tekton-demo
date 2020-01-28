@@ -1,0 +1,20 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TaskRun
+metadata:
+  generateName: golang-test-
+spec:
+  taskRef:
+    name: golang-test
+  inputs:
+    resources:
+    - name: source
+      resourceSpec:
+        type: git
+        params:
+        - name: url
+          value: https://github.com/wlynch/tekton-demo
+    params:
+    - name: package
+      value: github.com/wlynch/tekton-demo
+    - name: packages
+      value: ./golang/...
