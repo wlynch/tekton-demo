@@ -1,0 +1,47 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: buildpack-template
+spec:
+  params:
+  - name: gitrevision
+    description: The git revision
+    default: master
+  - name: gitrepositoryurl
+    description: The git repository url
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1alpha1
+    kind: TaskRun
+    metadata:
+      generateName: buildpack-run-
+    spec:
+      taskRef:
+        name: buildpacks-v3
+      podTemplate:
+        volumes:
+        - name: my-cache
+          persistentVolumeClaim:
+            claimName: my-volume-claim
+      inputs:
+        resources:
+        - name: source
+          resourceSpec:
+            type: git
+            params:
+            - name: url
+              value: $(params.gitrepositoryurl)
+            - name: gitrevision
+              value: $(params.gitrevision)
+        params:
+        - name: BUILDER_IMAGE
+          value: cloudfoundry/cnb:bionic
+        - name: CACHE
+          value: my-cache
+      outputs:
+        resources:
+        - name: image
+          resourceSpec:
+            type: image
+            params:
+            - name: url
+              value: gcr.io/wlynch-test/tekton-demo/buildpack

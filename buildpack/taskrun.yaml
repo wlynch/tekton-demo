@@ -21,7 +21,6 @@ spec:
     params:
     - name: BUILDER_IMAGE
       value: cloudfoundry/cnb:bionic
-      #value: cloudfoundry/cnb:cflinuxfs3
     - name: CACHE
       value: my-cache
   outputs:

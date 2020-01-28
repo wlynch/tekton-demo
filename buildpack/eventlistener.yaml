@@ -1,0 +1,12 @@
+apiVersion: tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: buildpack-interceptor
+spec:
+  triggers:
+    - name: push-trigger
+      interceptors:
+      bindings:
+        - name: git-push-binding
+      template:
+        name: buildpack-template
