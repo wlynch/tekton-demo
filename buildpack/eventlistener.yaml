@@ -6,6 +6,11 @@ spec:
   triggers:
     - name: push-trigger
       interceptors:
+        - github:
+            secretRef:
+              secretName: github-webhook
+              secretKey: secret
+
       bindings:
         - name: git-push-binding
       template:

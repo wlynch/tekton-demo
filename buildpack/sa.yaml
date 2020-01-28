@@ -3,12 +3,8 @@ imagePullSecrets:
 - name: gcr-json-key
 kind: ServiceAccount
 metadata:
-  creationTimestamp: "2019-11-26T20:12:50Z"
   name: default
-  namespace: default
-  resourceVersion: "21621823"
-  selfLink: /api/v1/namespaces/default/serviceaccounts/default
-  uid: 1edff81e-1089-11ea-9143-42010a8e0058
 secrets:
 - name: default-token-t5959
 - name: gcr-json-key
+- name: github-webhook
