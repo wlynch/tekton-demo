@@ -1,20 +1,34 @@
 apiVersion: tekton.dev/v1alpha1
-kind: TaskRun
+kind: TriggerTemplate
 metadata:
-  generateName: golang-test-
+  name: pipeline-template
 spec:
-  taskRef:
-    name: golang-test
-  inputs:
-    resources:
-    - name: source
-      resourceSpec:
-        type: git
-        params:
-        - name: url
-          value: https://github.com/wlynch/tekton-demo
-    params:
-    - name: package
-      value: github.com/wlynch/tekton-demo
-    - name: packages
-      value: ./golang/...
+  params:
+  - name: gitrevision
+    description: The git revision
+    default: master
+  - name: gitrepositoryurl
+    description: The git repository url
+  - name: gopackage
+    description: The go package to test
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1alpha1
+      kind: TaskRun
+      metadata:
+        generateName: golang-test-
+      spec:
+        taskRef:
+          name: golang-test
+        inputs:
+          resources:
+          - name: source
+            resourceSpec:
+              type: git
+              params:
+              - name: url
+                value: $(params.gitrepositoryurl)
+              - name: revision
+                value: $(params.gitrevision)
+          params:
+          - name: package
+            value: $(params.gopackage)
