@@ -10,7 +10,8 @@ spec:
             secretRef:
               secretName: github-webhook
               secretKey: secret
-
+        - cel:
+            filter: "header.match('X-GitHub-Event', 'push') && body.repository.name='tekton-demo'"
       bindings:
         - name: git-push-binding
       template:
