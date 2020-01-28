@@ -1,0 +1,159 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: buildpacks-v3
+spec:
+  inputs:
+    params:
+    - name: BUILDER_IMAGE
+      description: The image on which builds will run (must include v3 lifecycle and compatible buildpacks).
+    - name: USE_CRED_HELPERS
+      description: Use Docker credential helpers for Google's GCR, Amazon's ECR, or Microsoft's ACR.
+      default: 'false'
+    - name: CACHE
+      description: The name of the persistent app cache volume
+      default: empty-dir
+    - name: USER_ID
+      description: The user ID of the builder image user
+      default: "1000"
+    - name: GROUP_ID
+      description: The group ID of the builder image user
+      default: "1000"
+
+    resources:
+    - name: source
+      type: git
+
+  outputs:
+    resources:
+    - name: image
+      type: image
+
+  steps:
+
+    #  - name: install-gcr
+    #    image: ubuntu
+    #    script: |
+    #      #! /bin/bash
+    #      apt-get update
+    #      apt-get install -y curl wget
+    #
+    #      VERSION=2.0.0
+    #      OS=linux  # or "darwin" for OSX, "windows" for Windows.
+    #      ARCH=amd64  # or "386" for 32-bit OSs, "arm64" for ARM 64.
+    #
+    #      mkdir -p $HOME/bin
+    #      curl -fsSL "https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v${VERSION}/docker-credential-gcr_${OS}_${ARCH}-${VERSION}.tar.gz" \
+    #        | tar xz --to-stdout ./docker-credential-gcr \
+    #        > $HOME/bin/docker-credential-gcr && chmod +x $HOME/bin/docker-credential-gcr
+    #      export PATH=$PATH:$HOME/bin
+    #      #$HOME/bin/docker-credential-gcr configure-docker
+
+  - name: sleep
+    image: ubuntu
+    env:
+      - name: "PATH"
+        value: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/tekton/home/bin"
+    script: |
+      #! /bin/bash
+      sleep 0
+
+
+  - name: prepare
+    image: alpine
+    imagePullPolicy: Always
+    command: ["/bin/sh"]
+    args:
+    - "-c"
+    - >
+      chown -R "$(inputs.params.USER_ID):$(inputs.params.GROUP_ID)" "/builder/home" &&
+      chown -R "$(inputs.params.USER_ID):$(inputs.params.GROUP_ID)" "/layers" &&
+      chown -R "$(inputs.params.USER_ID):$(inputs.params.GROUP_ID)" "/cache" &&
+      chown -R "$(inputs.params.USER_ID):$(inputs.params.GROUP_ID)" "/workspace/source"
+    volumeMounts:
+    - name: "layers-dir"
+      mountPath: /layers
+    - name: "$(inputs.params.CACHE)"
+      mountPath: /cache
+
+  - name: detect
+    image: $(inputs.params.BUILDER_IMAGE)
+    imagePullPolicy: Always
+    command: ["/lifecycle/detector"]
+    args:
+    - "-app=/workspace/source/buildpack"
+    - "-group=/layers/group.toml"
+    - "-plan=/layers/plan.toml"
+    volumeMounts:
+    - name: "layers-dir"
+      mountPath: /layers
+
+  - name: restore
+    image: $(inputs.params.BUILDER_IMAGE)
+    imagePullPolicy: Always
+    command: ["/lifecycle/restorer"]
+    args:
+    - "-group=/layers/group.toml"
+    - "-layers=/layers"
+    - "-cache-dir=/cache"
+    volumeMounts:
+    - name: "$(inputs.params.CACHE)"
+      mountPath: /cache
+    - name: "layers-dir"
+      mountPath: /layers
+
+  - name: analyze
+    image: $(inputs.params.BUILDER_IMAGE)
+    imagePullPolicy: Always
+    command: ["/lifecycle/analyzer"]
+    args:
+    - "-layers=/layers"
+    - "-helpers=$(inputs.params.USE_CRED_HELPERS)"
+    - "-group=/layers/group.toml"
+    - "$(outputs.resources.image.url)"
+    env: 
+      - name : "DOCKER_CONFIG"
+        value: "/tekton/home/.docker/"
+      - name: "PATH"
+        value: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/tekton/home/bin"
+    volumeMounts:
+    - name: "layers-dir"
+      mountPath: /layers
+
+  - name: build
+    image: $(inputs.params.BUILDER_IMAGE)
+    imagePullPolicy: Always
+    command: ["/lifecycle/builder"]
+    args:
+    - "-app=/workspace/source/buildpack"
+    - "-layers=/layers"
+    - "-group=/layers/group.toml"
+    - "-plan=/layers/plan.toml"
+    volumeMounts:
+    - name: "layers-dir"
+      mountPath: /layers
+
+      #  - name: export
+      #    image: $(inputs.params.BUILDER_IMAGE)
+      #    imagePullPolicy: Always
+      #    command: ["/lifecycle/exporter"]
+      #    args:
+      #    - "-app=/workspace/source/buildpack"
+      #    - "-layers=/layers"
+      #    - "-helpers=$(inputs.params.USE_CRED_HELPERS)"
+      #    - "-group=/layers/group.toml"
+      #    - "$(outputs.resources.image.url)"
+      #    env:
+      #      - name: "DOCKER_CONFIG"
+      #        value: "/tekton/home/.docker/"
+      #      - name: "PATH"
+      #        value: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/tekton/home/bin"
+      #    volumeMounts:
+      #    - name: "layers-dir"
+      #      mountPath: /layers
+
+  volumes:
+  - name: empty-dir
+    emptyDir: {}
+  - name: layers-dir
+    emptyDir: {}

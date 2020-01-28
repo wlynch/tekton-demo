@@ -1,0 +1,34 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TaskRun
+metadata:
+  generateName: buildpack-run-
+spec:
+  taskRef:
+    name: buildpacks-v3
+  podTemplate:
+    volumes:
+    - name: my-cache
+      persistentVolumeClaim:
+        claimName: my-volume-claim
+  inputs:
+    resources:
+    - name: source
+      resourceSpec:
+        type: git
+        params:
+        - name: url
+          value: https://github.com/wlynch/tekton-demo
+    params:
+    - name: BUILDER_IMAGE
+      value: cloudfoundry/cnb:bionic
+      #value: cloudfoundry/cnb:cflinuxfs3
+    - name: CACHE
+      value: my-cache
+  outputs:
+    resources:
+    - name: image
+      resourceSpec:
+        type: image
+        params:
+        - name: url
+          value: gcr.io/wlynch-test/tekton-demo/buildpack
