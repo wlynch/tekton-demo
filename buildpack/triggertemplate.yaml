@@ -30,7 +30,7 @@ spec:
             params:
             - name: url
               value: $(params.gitrepositoryurl)
-            - name: gitrevision
+            - name: revision
               value: $(params.gitrevision)
         params:
         - name: BUILDER_IMAGE
