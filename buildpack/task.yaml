@@ -9,7 +9,7 @@ spec:
       description: The image on which builds will run (must include v3 lifecycle and compatible buildpacks).
     - name: USE_CRED_HELPERS
       description: Use Docker credential helpers for Google's GCR, Amazon's ECR, or Microsoft's ACR.
-      default: 'true'
+      default: 'false'
     - name: CACHE
       description: The name of the persistent app cache volume
       default: empty-dir
@@ -30,35 +30,6 @@ spec:
       type: image
 
   steps:
-
-  - name: install-gcr
-    image: ubuntu
-    script: |
-      #! /bin/bash
-      apt-get update
-      apt-get install -y curl wget
-
-      VERSION=2.0.0
-      OS=linux  # or "darwin" for OSX, "windows" for Windows.
-      ARCH=amd64  # or "386" for 32-bit OSs, "arm64" for ARM 64.
-
-      mkdir -p $HOME/bin
-      curl -fsSL "https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v${VERSION}/docker-credential-gcr_${OS}_${ARCH}-${VERSION}.tar.gz" \
-        | tar xz --to-stdout ./docker-credential-gcr \
-        > $HOME/bin/docker-credential-gcr && chmod +x $HOME/bin/docker-credential-gcr
-      export PATH=$PATH:$HOME/bin
-      #$HOME/bin/docker-credential-gcr configure-docker
-
-  - name: sleep
-    image: ubuntu
-    env:
-      - name: "PATH"
-        value: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/tekton/home/bin"
-    script: |
-      #! /bin/bash
-      sleep 0
-
-
   - name: prepare
     image: alpine
     imagePullPolicy: Always
@@ -114,8 +85,6 @@ spec:
     env: 
       - name : "DOCKER_CONFIG"
         value: "/tekton/home/.docker/"
-      - name: "PATH"
-        value: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/tekton/home/bin"
     volumeMounts:
     - name: "layers-dir"
       mountPath: /layers
@@ -142,15 +111,17 @@ spec:
     - "-layers=/layers"
     - "-helpers=$(inputs.params.USE_CRED_HELPERS)"
     - "-group=/layers/group.toml"
+    - "-cache-dir=/cache"
     - "$(outputs.resources.image.url)"
     env:
       - name: "DOCKER_CONFIG"
         value: "/tekton/home/.docker/"
-      - name: "PATH"
-        value: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/tekton/home/bin"
     volumeMounts:
     - name: "layers-dir"
       mountPath: /layers
+    - name: "$(inputs.params.CACHE)"
+      mountPath: /cache
+
 
   volumes:
   - name: empty-dir
