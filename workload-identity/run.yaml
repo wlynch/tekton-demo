@@ -1,0 +1,12 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: workload-identity-
+spec:
+  serviceAccountName: build-robot
+  pipelineRef:
+    name: workload-identity
+  workspaces:
+  - name: repo
+    persistentVolumeClaim:
+      claimName: source-pvc
