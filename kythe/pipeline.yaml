@@ -1,0 +1,17 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: kythe-go
+spec:
+  workspaces:
+  - name: gcs
+  tasks:
+  - name: kythe
+    params:
+    - name: package
+      value: "github.com/tektoncd/pipeline/..."
+    taskRef:
+      name: kythe-go
+    workspaces:
+    - name: output
+      workspace: gcs

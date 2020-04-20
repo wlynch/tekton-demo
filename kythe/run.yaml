@@ -1,0 +1,15 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: kythe-go-
+spec:
+  serviceAccountName: build-robot
+  pipelineRef:
+    name: kythe-go
+  workspaces:
+  - name: repo
+    persistentVolumeClaim:
+      claimName: source-pvc
+  - name: gcs
+    persistentVolumeClaim:
+      claimName: gcs-pvc
