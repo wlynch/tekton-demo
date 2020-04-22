@@ -1,0 +1,11 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TaskRun
+metadata:
+  generateName: workload-identity-pull-
+spec:
+  serviceAccountName: build-robot
+  taskSpec:
+    steps:
+      - name: hello
+        image: gcr.io/wlynch-test/test-c764cc26288059fef2e5784ac3abb31b
+        #command: ["test"]

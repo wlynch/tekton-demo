@@ -46,8 +46,8 @@ spec:
         env:
           - name: "DOCKER_CONFIG"
             value: "/tekton/home/.docker"
-            #command:
-            #- "test"
+        command:
+          - "test"
         args:
           - --context=dir://$(workspaces.input.path)/src
             #- --destination=gcr.io/wlynch-test/kaniko-test

@@ -1,0 +1,11 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  generateName: workload-identity-pull-pl-
+spec:
+  serviceAccountName: build-robot
+  pipelineSpec:
+    tasks:
+    - name: hello
+      taskRef:
+        name: hello

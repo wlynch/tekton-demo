@@ -1,0 +1,8 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: hello
+spec:
+  steps:
+    - name: hello
+      image: gcr.io/wlynch-test/test-c764cc26288059fef2e5784ac3abb31b
