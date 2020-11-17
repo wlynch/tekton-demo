@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: bootstrap-run-
+  namespace: default
+spec:
+  params:
+  - name: repo
+    value: https://github.com/wlynch/test
+  - name: revision
+    value: master
+  - name: path
+    value: tekton.yaml
+  pipelineRef:
+    name: bootstrap
+  workspaces:
+  - name: pwd
+    volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
