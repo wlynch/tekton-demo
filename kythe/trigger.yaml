@@ -1,0 +1,7 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: Trigger
+metadata:
+  name: kythe-trigger
+spec:
+  template:
+    ref: kythe-pipeline

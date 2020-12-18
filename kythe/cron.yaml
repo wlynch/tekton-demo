@@ -1,0 +1,19 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: kythe-pipeline
+spec:
+  schedule: "*/6 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: tkn
+            image: gcr.io/tekton-releases/dogfooding/tkn@sha256:defb97935a4d4be26c760e43a397b649fb5591ac1aa6a736ada01e559c13767b
+            imagePullPolicy: IfNotPresent
+            args:
+            - pipeline
+            - -c
+            - date; echo Hello from the Kubernetes cluster
+          restartPolicy: OnFailure

@@ -3,15 +3,47 @@ kind: Pipeline
 metadata:
   name: kythe-go
 spec:
-  workspaces:
-  - name: gcs
+  params:
+    - name: repo
+      description: "Repository to analyze, without scheme: e.g. github.com/tektoncd/pipeline"
+      type: string
   tasks:
-  - name: kythe
-    params:
-    - name: package
-      value: "github.com/tektoncd/pipeline/..."
-    taskRef:
-      name: kythe-go
-    workspaces:
-    - name: output
-      workspace: gcs
+    - name: kythe
+      params:
+        - name: package
+          value: $(params.repo)/...
+      taskRef:
+        name: kythe-go
+      workspaces:
+        - name: output
+          workspace: gcs
+    - name: git
+      params:
+        - name: repo
+          value: $(params.repo)
+      taskSpec:
+        params:
+          - name: repo
+            type: string
+        results: 
+        - name: commit
+        steps:
+          - name: resolve
+            image: docker.io/alpine/git:v2.26.2@sha256:8715680f27333935bb384a678256faf8e8832a5f2a0d4a00c9d481111c5a29c0
+            script: |
+              echo -n "$(git ls-remote https://$(params.repo) HEAD | cut -d$'\t' -f1)" > $(results.commit.path)
+    - name: upload
+      runAfter: [kythe, git]
+      workspaces:
+        - name: source
+          workspace: gcs
+      params:
+        - name: path
+          value: compilations.kzip
+        - name: location
+          value: "gs://tekton-osscs/$(params.repo)/$(tasks.git.results.commit).kzip"
+      taskRef:
+        name: gcs-upload
+  workspaces:
+    - name: gcs
+

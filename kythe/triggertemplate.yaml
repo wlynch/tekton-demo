@@ -1,0 +1,27 @@
+
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: kythe-pipeline
+spec:
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: kythe-go-pipeline-
+      spec:
+        serviceAccountName: osscs
+        pipelineRef:
+          name: kythe-go
+        params:
+          - name: repo
+            value: github.com/tektoncd/pipeline
+        workspaces:
+        - name: gcs
+          volumeClaimTemplate:
+            spec:
+              accessModes:
+                - ReadWriteOnce # access mode may affect how you can use this volume in parallel tasks
+              resources:
+                requests:
+                  storage: 1Gi

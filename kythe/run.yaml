@@ -3,13 +3,18 @@ kind: PipelineRun
 metadata:
   generateName: kythe-go-
 spec:
-  serviceAccountName: build-robot
+  serviceAccountName: osscs
   pipelineRef:
     name: kythe-go
+  params:
+    - name: repo
+      value: github.com/tektoncd/pipeline
   workspaces:
-  - name: repo
-    persistentVolumeClaim:
-      claimName: source-pvc
   - name: gcs
-    persistentVolumeClaim:
-      claimName: gcs-pvc
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce # access mode may affect how you can use this volume in parallel tasks
+        resources:
+          requests:
+            storage: 1Gi

@@ -1,0 +1,7 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: kythe-eventistener
+spec:
+  triggers:
+    - triggerRef: kythe-trigger
